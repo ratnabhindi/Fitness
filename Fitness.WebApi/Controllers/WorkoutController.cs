@@ -10,18 +10,18 @@ namespace Fitness.WebApi.Controllers
     public class WorkoutController : ControllerBase
     {
 
-        private readonly IFitnessService _fitnessService;
+        private readonly IWorkoutService _workoutService;
 
-        public WorkoutController(IFitnessService fitnessService)
+        public WorkoutController(IWorkoutService workoutService)
         {
-            _fitnessService = fitnessService;
+            _workoutService = workoutService;
         }
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesDefaultResponseType]
         public async Task<ActionResult<IEnumerable<Workout>>> GetAll()
-        => Ok(await _fitnessService.GetAll());
+        => Ok(await _workoutService.GetAll());
 
 
         [HttpGet("{id}")]
@@ -30,7 +30,7 @@ namespace Fitness.WebApi.Controllers
         [ProducesDefaultResponseType]
         public async Task<ActionResult<Workout>> GetById(Guid id)
         {
-            var workout = await _fitnessService.GetById(id);
+            var workout = await _workoutService.GetById(id);
             if (workout == null)
             {
                 return NotFound();
@@ -74,7 +74,7 @@ namespace Fitness.WebApi.Controllers
         public async Task<IActionResult> Create(Workout plan)
         {
             plan.Id = Guid.NewGuid();
-            await _fitnessService.Create(plan);
+            await _workoutService.Create(plan);
             return CreatedAtAction(nameof(GetById), new { id = plan.Id }, plan);
         }
 
@@ -91,7 +91,7 @@ namespace Fitness.WebApi.Controllers
 
             try
             {
-                await _fitnessService.Update(workout);
+                await _workoutService.Update(workout);
             }
             catch (ArgumentException ex) when (ex.Message.Contains("not found"))
             {
@@ -106,7 +106,7 @@ namespace Fitness.WebApi.Controllers
         [ProducesDefaultResponseType]
         public async Task<IActionResult> Delete(Guid id)
         {
-            await _fitnessService.Delete(id);
+            await _workoutService.Delete(id);
             return NoContent();
         }
 

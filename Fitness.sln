@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fitness.Infrastructure", "F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fitness.Domain", "Fitness.Domain\Fitness.Domain.csproj", "{47010B04-4B5A-469F-B47C-2BB184765684}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fitness.Tests", "Fitness.Tests\Fitness.Tests.csproj", "{DACD63A1-C03F-4494-99C7-D9E6FA4A93F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,10 @@ Global
 		{47010B04-4B5A-469F-B47C-2BB184765684}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47010B04-4B5A-469F-B47C-2BB184765684}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47010B04-4B5A-469F-B47C-2BB184765684}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DACD63A1-C03F-4494-99C7-D9E6FA4A93F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DACD63A1-C03F-4494-99C7-D9E6FA4A93F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DACD63A1-C03F-4494-99C7-D9E6FA4A93F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DACD63A1-C03F-4494-99C7-D9E6FA4A93F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,6 +52,7 @@ Global
 		{88FD6179-E930-4B9E-9797-8D73FF99F610} = {D229105D-5BF2-4169-868D-D1F216F200BD}
 		{A2995DA6-2636-4A1B-AAEA-3A42C0024FAD} = {D229105D-5BF2-4169-868D-D1F216F200BD}
 		{47010B04-4B5A-469F-B47C-2BB184765684} = {D229105D-5BF2-4169-868D-D1F216F200BD}
+		{DACD63A1-C03F-4494-99C7-D9E6FA4A93F9} = {F58316F9-FF85-4F2A-8756-39287CBD6416}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {109883FA-ECF6-4D30-A22F-854484B52052}

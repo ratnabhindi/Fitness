@@ -7,7 +7,7 @@ using Fitness.Domain.Models;
 
 namespace Fitness.Application.Services.Interfaces
 {
-    public interface IFitnessService
+    public interface IWorkoutService
     {
         Task<IEnumerable<Workout>> GetAll();
         Task<Workout?> GetById(Guid id);

@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace Fitness.Application.Services.Implementation
 {
-    public class FitnessService : IFitnessService
+    public class WorkoutService : IWorkoutService
     {
         private readonly List<Workout> workouts;
 
-        public FitnessService()
+        public WorkoutService()
         {
             workouts = new List<Workout>();
         }
