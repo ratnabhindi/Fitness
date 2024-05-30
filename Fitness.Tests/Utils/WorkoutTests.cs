@@ -1,5 +1,6 @@
 ﻿using Fitness.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestPlatform.TestHost;
 using System;
 using System.Collections.Generic;
@@ -16,12 +17,12 @@ namespace Fitness.Tests.Utils
 
         public WorkoutTests()
         {
-            var factory = new WebApplicationFactory<Program>();
+            var factory = new WebApplicationFactory<WebApi.Program>();
             httpClient = factory.CreateClient();
             workoutService = factory.Services.GetService(typeof(IWorkoutService))
                                 as IWorkoutService
                                 ?? throw new SystemException(nameof(IWorkoutService)
                                                                     + " is not registered.");
         }
-    }
+    }    
 }
