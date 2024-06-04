@@ -1,4 +1,5 @@
 ﻿using Fitness.Domain.Models;
+using Fitness.WebApi.Utils;
 using System.ComponentModel.DataAnnotations;
 
 namespace Fitness.WebApi.ViewModels
@@ -14,7 +15,12 @@ namespace Fitness.WebApi.ViewModels
         [StringLength(500, ErrorMessage = "Description cannot be longer than 500 characters")]
         public string Description { get; set; }
 
+        [DateCheck("01/01/2020", ErrorMessage = "Workout date must be on or after January 1, 2020")]
+        public DateTime WorkoutDate { get; set; }
+
         [Required(ErrorMessage = "At least one exercise is required")]
         public List<ExerciseViewModel> Exercises { get; set; }
+
+       
     }
 }

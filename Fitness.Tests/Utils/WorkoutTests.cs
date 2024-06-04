@@ -1,4 +1,6 @@
 ﻿using Fitness.Application.Services.Interfaces;
+using Fitness.Domain.Models;
+using Fitness.WebApi.ViewModels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestPlatform.TestHost;
@@ -23,6 +25,26 @@ namespace Fitness.Tests.Utils
                                 as IWorkoutService
                                 ?? throw new SystemException(nameof(IWorkoutService)
                                                                     + " is not registered.");
+        }
+
+        protected WorkoutViewModel MapToViewModel(Workout workout)
+        {
+            return new WorkoutViewModel
+            {
+                Id = workout.Id,
+                Name = workout.Name,
+                Description = workout.Description,
+                WorkoutDate = workout.WorkoutDate,
+                Exercises = workout.Exercises.Select(ex => new ExerciseViewModel
+                {
+                    Id = ex.Id,
+                    Name = ex.Name,
+                    Sets = ex.Sets,
+                    Repetitions = ex.Repetitions,
+                    Weight = ex.Weight,
+                    Duration = ex.Duration
+                }).ToList()
+            };
         }
     }    
 }

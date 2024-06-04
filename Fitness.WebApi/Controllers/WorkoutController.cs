@@ -29,6 +29,7 @@ namespace Fitness.WebApi.Controllers
                 Id = workout.Id,
                 Name = workout.Name,
                 Description = workout.Description,
+                WorkoutDate = workout.WorkoutDate,
                 Exercises = workout.Exercises.Select(ex => new ExerciseViewModel
                 {
                     Id = ex.Id,
@@ -60,6 +61,7 @@ namespace Fitness.WebApi.Controllers
                 Id = workout.Id,
                 Name = workout.Name,
                 Description = workout.Description,
+                WorkoutDate = workout.WorkoutDate,
                 Exercises = workout.Exercises.Select(ex => new ExerciseViewModel
                 {
                     Id = ex.Id,
@@ -119,6 +121,7 @@ namespace Fitness.WebApi.Controllers
                 Id = Guid.NewGuid(),
                 Name = workoutViewModel.Name,
                 Description = workoutViewModel.Description,
+                WorkoutDate = workoutViewModel.WorkoutDate,
                 Exercises = workoutViewModel.Exercises.Select(ex => new Exercise
                 {
                     Id = Guid.NewGuid(),
@@ -153,6 +156,7 @@ namespace Fitness.WebApi.Controllers
                 Id = workoutViewModel.Id,
                 Name = workoutViewModel.Name,
                 Description = workoutViewModel.Description,
+                WorkoutDate = workoutViewModel.WorkoutDate,
                 Exercises = workoutViewModel.Exercises.Select(ex => new Exercise
                 {
                     Id = ex.Id,

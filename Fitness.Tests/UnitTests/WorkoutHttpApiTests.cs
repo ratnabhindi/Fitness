@@ -14,25 +14,6 @@ namespace Fitness.Tests.UnitTests
 {
     public class WorkoutHttpApiTests : WorkoutTests
     {
-        private WorkoutViewModel MapToViewModel(Workout workout)
-        {
-            return new WorkoutViewModel
-            {
-                Id = workout.Id,
-                Name = workout.Name,
-                Description = workout.Description,
-                Exercises = workout.Exercises?.Select(ex => new ExerciseViewModel
-                {
-                    Id = ex.Id,
-                    Name = ex.Name,
-                    Sets = ex.Sets,
-                    Repetitions = ex.Repetitions,
-                    Weight = ex.Weight,
-                    Duration = ex.Duration
-                }).ToList()
-            };
-        }
-
         [Fact]
         public async Task GetAll_Returns200OK()
         {

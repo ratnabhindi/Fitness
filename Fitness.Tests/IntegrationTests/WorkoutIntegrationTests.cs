@@ -14,25 +14,7 @@ using Xunit;
 namespace Fitness.Tests.IntegrationTests
 {
     public class WorkoutIntegrationTests : WorkoutTests
-    {
-        private WorkoutViewModel MapToViewModel(Workout workout)
-        {
-            return new WorkoutViewModel
-            {
-                Id = workout.Id,
-                Name = workout.Name,
-                Description = workout.Description,
-                Exercises = workout.Exercises?.Select(ex => new ExerciseViewModel
-                {
-                    Id = ex.Id,
-                    Name = ex.Name,
-                    Sets = ex.Sets,
-                    Repetitions = ex.Repetitions,
-                    Weight = ex.Weight,
-                    Duration = ex.Duration
-                }).ToList()
-            };
-        }
+    {      
 
         [Theory, AutoData]
         public async Task Gets_all_workouts(Workout[] workoutSeeds)
