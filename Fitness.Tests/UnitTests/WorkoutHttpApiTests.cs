@@ -1,19 +1,38 @@
 ﻿using AutoFixture.Xunit2;
 using Fitness.Application.Services.Implementation;
 using Fitness.Domain.Models;
+using Fitness.WebApi.ViewModels;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Fitness.Tests.UnitTests
 {
     public class WorkoutHttpApiTests : WorkoutTests
     {
+        private WorkoutViewModel MapToViewModel(Workout workout)
+        {
+            return new WorkoutViewModel
+            {
+                Id = workout.Id,
+                Name = workout.Name,
+                Description = workout.Description,
+                Exercises = workout.Exercises?.Select(ex => new ExerciseViewModel
+                {
+                    Id = ex.Id,
+                    Name = ex.Name,
+                    Sets = ex.Sets,
+                    Repetitions = ex.Repetitions,
+                    Weight = ex.Weight,
+                    Duration = ex.Duration
+                }).ToList()
+            };
+        }
+
         [Fact]
         public async Task GetAll_Returns200OK()
         {
@@ -25,9 +44,7 @@ namespace Fitness.Tests.UnitTests
         public async Task GetById_Returns200OK(Workout workoutSeed)
         {
             await workoutService.Seed(workoutSeed);
-
             var response = await httpClient.GetAsync($"/api/workout/{workoutSeed.Id}");
-
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
@@ -35,66 +52,55 @@ namespace Fitness.Tests.UnitTests
         public async Task GetById_WithNonExistingWorkoutId_Returns404NotFound(Workout NonExistentWorkout)
         {
             var response = await httpClient.GetAsync($"/api/workout/{NonExistentWorkout.Id}");
-
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
-
-
 
         [Theory, AutoData]
         public async Task Create_Returns201Created(Workout workoutSeed)
         {
-            var requestContent = new StringContent(JsonConvert.SerializeObject(workoutSeed), Encoding.UTF8, "application/json");
-
+            var workoutViewModel = MapToViewModel(workoutSeed);
+            var requestContent = new StringContent(JsonConvert.SerializeObject(workoutViewModel), Encoding.UTF8, "application/json");
             var response = await httpClient.PostAsync("/api/workout/", requestContent);
-
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
         [Theory, AutoData]
         public async Task Create_Returns400BadRequest(Workout invalidWorkout)
-        {          
-            var requestContent = new StringContent(JsonConvert.SerializeObject(invalidWorkout), Encoding.UTF8, "application/json");
-
+        {
+            var workoutViewModel = MapToViewModel(invalidWorkout);
+            workoutViewModel.Name = null;  // making it invalid
+            var requestContent = new StringContent(JsonConvert.SerializeObject(workoutViewModel), Encoding.UTF8, "application/json");
             var response = await httpClient.PostAsync("/api/workout", requestContent);
-
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
-
         [Theory, AutoData]
-        public async Task Update_Returns200OK(Workout workoutSeed)
+        public async Task Update_Returns204NoContent(Workout workoutSeed)
         {
             await workoutService.Seed(workoutSeed);
-            var requestContent = new StringContent(JsonConvert.SerializeObject(workoutSeed), Encoding.UTF8, "application/json");
-
-            var response = await httpClient.PutAsync($"/api/workout/{workoutSeed.Id}", requestContent);
-
+            var workoutViewModel = MapToViewModel(workoutSeed);
+            var requestContent = new StringContent(JsonConvert.SerializeObject(workoutViewModel), Encoding.UTF8, "application/json");
+            var response = await httpClient.PutAsync($"/api/workout/{workoutViewModel.Id}", requestContent);
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
-
 
         [Theory, AutoData]
         public async Task Update_WithWrongId_Returns400BadRequest(Workout dummyWorkout, Guid wrongWorkoutId)
         {
-            var requestContent = new StringContent(JsonConvert.SerializeObject(dummyWorkout), Encoding.UTF8, "application/json");
-
+            var workoutViewModel = MapToViewModel(dummyWorkout);
+            var requestContent = new StringContent(JsonConvert.SerializeObject(workoutViewModel), Encoding.UTF8, "application/json");
             var response = await httpClient.PutAsync($"/api/workout/{wrongWorkoutId}", requestContent);
-
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
-
 
         [Theory, AutoData]
         public async Task Update_NonExisting_Returns404NotFound(Workout nonExistingWorkout)
         {
-            var requestContent = new StringContent(JsonConvert.SerializeObject(nonExistingWorkout), Encoding.UTF8, "application/json");
-
-            var response = await httpClient.PutAsync($"/api/workout/{nonExistingWorkout.Id}", requestContent);
-
+            var workoutViewModel = MapToViewModel(nonExistingWorkout);
+            var requestContent = new StringContent(JsonConvert.SerializeObject(workoutViewModel), Encoding.UTF8, "application/json");
+            var response = await httpClient.PutAsync($"/api/workout/{workoutViewModel.Id}", requestContent);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
-
 
         [Theory, AutoData]
         public async Task Delete_Returns200OK(Workout workoutSeed)

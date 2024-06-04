@@ -1,5 +1,6 @@
 ﻿using Fitness.Application.Services.Interfaces;
 using Fitness.Domain.Models;
+using Fitness.WebApi.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fitness.WebApi.Controllers
@@ -20,22 +21,57 @@ namespace Fitness.WebApi.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesDefaultResponseType]
-        public async Task<ActionResult<IEnumerable<Workout>>> GetAll()
-        => Ok(await _workoutService.GetAll());
+        public async Task<ActionResult<IEnumerable<WorkoutViewModel>>> GetAll()
+        {
+            var workouts = await _workoutService.GetAll();
+            var workoutViewModels = workouts.Select(workout => new WorkoutViewModel
+            {
+                Id = workout.Id,
+                Name = workout.Name,
+                Description = workout.Description,
+                Exercises = workout.Exercises.Select(ex => new ExerciseViewModel
+                {
+                    Id = ex.Id,
+                    Name = ex.Name,
+                    Sets = ex.Sets,
+                    Repetitions = ex.Repetitions,
+                    Weight = ex.Weight,
+                    Duration = ex.Duration
+                }).ToList()
+            }).ToList();
+            return Ok(workoutViewModels);
+        }
 
 
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesDefaultResponseType]
-        public async Task<ActionResult<Workout>> GetById(Guid id)
+        public async Task<ActionResult<WorkoutViewModel>> GetById(Guid id)
         {
             var workout = await _workoutService.GetById(id);
             if (workout == null)
             {
                 return NotFound();
             }
-            return workout;
+
+            var workoutViewModel = new WorkoutViewModel
+            {
+                Id = workout.Id,
+                Name = workout.Name,
+                Description = workout.Description,
+                Exercises = workout.Exercises.Select(ex => new ExerciseViewModel
+                {
+                    Id = ex.Id,
+                    Name = ex.Name,
+                    Sets = ex.Sets,
+                    Repetitions = ex.Repetitions,
+                    Weight = ex.Weight,
+                    Duration = ex.Duration
+                }).ToList()
+            };
+
+            return Ok(workoutViewModel);
         }
 
         /// <summary>
@@ -71,23 +107,62 @@ namespace Fitness.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)] // Affects /swagger => the responses section
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesDefaultResponseType]
-        public async Task<IActionResult> Create(Workout plan)
+        public async Task<IActionResult> Create(WorkoutViewModel workoutViewModel)
         {
-            plan.Id = Guid.NewGuid();
-            await _workoutService.Create(plan);
-            return CreatedAtAction(nameof(GetById), new { id = plan.Id }, plan);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var workout = new Workout
+            {
+                Id = Guid.NewGuid(),
+                Name = workoutViewModel.Name,
+                Description = workoutViewModel.Description,
+                Exercises = workoutViewModel.Exercises.Select(ex => new Exercise
+                {
+                    Id = Guid.NewGuid(),
+                    Name = ex.Name,
+                    Sets = ex.Sets,
+                    Repetitions = ex.Repetitions,
+                    Weight = ex.Weight,
+                    Duration = ex.Duration
+                }).ToList()
+            };
+
+            await _workoutService.Create(workout);
+
+            workoutViewModel.Id = workout.Id;
+
+            return CreatedAtAction(nameof(GetById), new { id = workout.Id }, workoutViewModel);
         }
 
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesDefaultResponseType]
-        public async Task<IActionResult> Update(Guid id, [FromBody] Workout workout)
+        public async Task<IActionResult> Update(Guid id, [FromBody] WorkoutViewModel workoutViewModel)
         {
-            if (id != workout.Id)
+            if (id != workoutViewModel.Id)
             {
                 return BadRequest();
             }
+
+            var workout = new Workout
+            {
+                Id = workoutViewModel.Id,
+                Name = workoutViewModel.Name,
+                Description = workoutViewModel.Description,
+                Exercises = workoutViewModel.Exercises.Select(ex => new Exercise
+                {
+                    Id = ex.Id,
+                    Name = ex.Name,
+                    Sets = ex.Sets,
+                    Repetitions = ex.Repetitions,
+                    Weight = ex.Weight,
+                    Duration = ex.Duration
+                }).ToList()
+            };
 
             try
             {
@@ -100,6 +175,7 @@ namespace Fitness.WebApi.Controllers
 
             return NoContent();
         }
+
 
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
