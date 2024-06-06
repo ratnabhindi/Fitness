@@ -1,4 +1,5 @@
-﻿using Fitness.Application.Services.Interfaces;
+﻿using AutoMapper;
+using Fitness.Application.Services.Interfaces;
 using Fitness.Domain.Models;
 using Fitness.WebApi.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,11 @@ namespace Fitness.WebApi.Controllers
     {
 
         private readonly IWorkoutService _workoutService;
-
-        public WorkoutController(IWorkoutService workoutService)
+        private readonly IMapper _mapper;
+        public WorkoutController(IWorkoutService workoutService, IMapper mapper)
         {
             _workoutService = workoutService;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -24,23 +26,9 @@ namespace Fitness.WebApi.Controllers
         public async Task<ActionResult<IEnumerable<WorkoutViewModel>>> GetAll()
         {
             var workouts = await _workoutService.GetAll();
-            var workoutViewModels = workouts.Select(workout => new WorkoutViewModel
-            {
-                Id = workout.Id,
-                Name = workout.Name,
-                Description = workout.Description,
-                WorkoutDate = workout.WorkoutDate,
-                Exercises = workout.Exercises.Select(ex => new ExerciseViewModel
-                {
-                    Id = ex.Id,
-                    Name = ex.Name,
-                    Sets = ex.Sets,
-                    Repetitions = ex.Repetitions,
-                    Weight = ex.Weight,
-                    Duration = ex.Duration
-                }).ToList()
-            }).ToList();
-            return Ok(workoutViewModels);
+            var workoutDTO = _mapper.Map<List<WorkoutViewModel>>(workouts);
+            
+            return Ok(workoutDTO);
         }
 
 
@@ -55,25 +43,9 @@ namespace Fitness.WebApi.Controllers
             {
                 return NotFound();
             }
+            var workoutDTO = _mapper.Map<WorkoutViewModel>(workout);           
 
-            var workoutViewModel = new WorkoutViewModel
-            {
-                Id = workout.Id,
-                Name = workout.Name,
-                Description = workout.Description,
-                WorkoutDate = workout.WorkoutDate,
-                Exercises = workout.Exercises.Select(ex => new ExerciseViewModel
-                {
-                    Id = ex.Id,
-                    Name = ex.Name,
-                    Sets = ex.Sets,
-                    Repetitions = ex.Repetitions,
-                    Weight = ex.Weight,
-                    Duration = ex.Duration
-                }).ToList()
-            };
-
-            return Ok(workoutViewModel);
+            return Ok(workoutDTO);
         }
 
         /// <summary>
@@ -116,28 +88,12 @@ namespace Fitness.WebApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var workout = new Workout
-            {
-                Id = Guid.NewGuid(),
-                Name = workoutViewModel.Name,
-                Description = workoutViewModel.Description,
-                WorkoutDate = workoutViewModel.WorkoutDate,
-                Exercises = workoutViewModel.Exercises.Select(ex => new Exercise
-                {
-                    Id = Guid.NewGuid(),
-                    Name = ex.Name,
-                    Sets = ex.Sets,
-                    Repetitions = ex.Repetitions,
-                    Weight = ex.Weight,
-                    Duration = ex.Duration
-                }).ToList()
-            };
+            var workoutDTO = _mapper.Map<Workout>(workoutViewModel);         
 
-            await _workoutService.Create(workout);
+            await _workoutService.Create(workoutDTO);
+            workoutViewModel.Id = workoutDTO.Id;
 
-            workoutViewModel.Id = workout.Id;
-
-            return CreatedAtAction(nameof(GetById), new { id = workout.Id }, workoutViewModel);
+            return CreatedAtAction(nameof(GetById), new { id = workoutDTO.Id }, workoutDTO);
         }
 
         [HttpPut("{id}")]
@@ -151,26 +107,11 @@ namespace Fitness.WebApi.Controllers
                 return BadRequest();
             }
 
-            var workout = new Workout
-            {
-                Id = workoutViewModel.Id,
-                Name = workoutViewModel.Name,
-                Description = workoutViewModel.Description,
-                WorkoutDate = workoutViewModel.WorkoutDate,
-                Exercises = workoutViewModel.Exercises.Select(ex => new Exercise
-                {
-                    Id = ex.Id,
-                    Name = ex.Name,
-                    Sets = ex.Sets,
-                    Repetitions = ex.Repetitions,
-                    Weight = ex.Weight,
-                    Duration = ex.Duration
-                }).ToList()
-            };
+            var workoutDTO = _mapper.Map<Workout>(workoutViewModel);           
 
             try
             {
-                await _workoutService.Update(workout);
+                await _workoutService.Update(workoutDTO);
             }
             catch (ArgumentException ex) when (ex.Message.Contains("not found"))
             {

@@ -2,6 +2,7 @@ using Fitness.Application.Services.Implementation;
 using Fitness.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using Fitness.WebApi.Configurations;
 
 namespace Fitness.WebApi
 {
@@ -74,6 +75,7 @@ namespace Fitness.WebApi
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddAutoMapper(typeof(AutoMapperConfig));
 
             var app = builder.Build();
 

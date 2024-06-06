@@ -24,7 +24,7 @@ namespace Fitness.Application.Services.Implementation
 
         public Task<Workout?> GetById(Guid id)
         {
-            return Task.FromResult(workouts.SingleOrDefault(w => w.Id == id));
+            return Task.FromResult(workouts.FirstOrDefault(w => w.Id == id));
         }
 
         public Task Create(Workout workout)
@@ -35,19 +35,25 @@ namespace Fitness.Application.Services.Implementation
 
         public Task Update(Workout updatedWorkout)
         {
-            var oldWorkout = workouts.SingleOrDefault(w => w.Id == updatedWorkout.Id);
+            var oldWorkout = workouts.FirstOrDefault(w => w.Id == updatedWorkout.Id);
             if (oldWorkout == null)
             {
                 throw new ArgumentException("Workout not found.");
             }
-            workouts.Remove(oldWorkout);
-            workouts.Add(updatedWorkout);
+            //workouts.Remove(oldWorkout);
+            //workouts.Add(updatedWorkout);
+
+            oldWorkout.Name = updatedWorkout.Name;
+            oldWorkout.Description = updatedWorkout.Description;
+            oldWorkout.WorkoutDate = updatedWorkout.WorkoutDate;
+            oldWorkout.Exercises = updatedWorkout.Exercises;
+
             return Task.CompletedTask;
         }
 
         public Task Delete(Guid id)
         {
-            var existingWorkout = workouts.SingleOrDefault(w => w.Id == id);
+            var existingWorkout = workouts.FirstOrDefault(w => w.Id == id);
             if (existingWorkout != null)
             {
                 workouts.Remove(existingWorkout);
