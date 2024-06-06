@@ -3,6 +3,7 @@ using Fitness.Application.Services.Interfaces;
 using Fitness.Domain.Models;
 using Fitness.WebApi.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Fitness.WebApi.Controllers
 {
@@ -81,19 +82,24 @@ namespace Fitness.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)] // Affects /swagger => the responses section
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesDefaultResponseType]
-        public async Task<IActionResult> Create(WorkoutViewModel workoutViewModel)
+        public async Task<IActionResult> Create([FromBody] WorkoutViewModel workoutViewModel)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var workoutDTO = _mapper.Map<Workout>(workoutViewModel);         
+            var workoutDTO = _mapper.Map<Workout>(workoutViewModel);
 
-            await _workoutService.Create(workoutDTO);
-            workoutViewModel.Id = workoutDTO.Id;
-
-            return CreatedAtAction(nameof(GetById), new { id = workoutDTO.Id }, workoutDTO);
+            try
+            {
+                await _workoutService.Create(workoutDTO);
+                return CreatedAtAction(nameof(GetById), new { id = workoutDTO.Id }, workoutViewModel);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{id}")]

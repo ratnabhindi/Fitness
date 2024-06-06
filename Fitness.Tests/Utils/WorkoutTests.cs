@@ -1,5 +1,7 @@
-﻿using Fitness.Application.Services.Interfaces;
+﻿using AutoMapper;
+using Fitness.Application.Services.Interfaces;
 using Fitness.Domain.Models;
+using Fitness.WebApi.Configurations;
 using Fitness.WebApi.ViewModels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +18,7 @@ namespace Fitness.Tests.Utils
     {
         protected readonly HttpClient httpClient;
         protected readonly IWorkoutService workoutService;
+        protected readonly IMapper mapper;
 
         public WorkoutTests()
         {
@@ -25,26 +28,17 @@ namespace Fitness.Tests.Utils
                                 as IWorkoutService
                                 ?? throw new SystemException(nameof(IWorkoutService)
                                                                     + " is not registered.");
+
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<AutoMapperConfig>();
+            });
+            mapper = config.CreateMapper();
         }
 
         protected WorkoutViewModel MapToViewModel(Workout workout)
         {
-            return new WorkoutViewModel
-            {
-                Id = workout.Id,
-                Name = workout.Name,
-                Description = workout.Description,
-                WorkoutDate = workout.WorkoutDate,
-                Exercises = workout.Exercises.Select(ex => new ExerciseViewModel
-                {
-                    Id = ex.Id,
-                    Name = ex.Name,
-                    Sets = ex.Sets,
-                    Repetitions = ex.Repetitions,
-                    Weight = ex.Weight,
-                    Duration = ex.Duration
-                }).ToList()
-            };
+            return mapper.Map<WorkoutViewModel>(workout);
         }
     }    
 }

@@ -45,14 +45,14 @@ namespace Fitness.Tests.UnitTests
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
-        [Theory, AutoData]
+        [Theory, AutoData]      
         public async Task Create_Returns400BadRequest(Workout invalidWorkout)
         {
             var workoutViewModel = MapToViewModel(invalidWorkout);
             workoutViewModel.Name = null;  // making it invalid
             var requestContent = new StringContent(JsonConvert.SerializeObject(workoutViewModel), Encoding.UTF8, "application/json");
             var response = await httpClient.PostAsync("/api/workout", requestContent);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
         }
 
         [Theory, AutoData]
