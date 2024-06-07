@@ -40,5 +40,30 @@ namespace Fitness.Tests.Utils
         {
             return mapper.Map<WorkoutViewModel>(workout);
         }
+
+        protected async Task SeedDataAsync()
+        {
+            var workout = new Workout
+            {
+                Id = Guid.NewGuid(),
+                Name = "Test Workout",
+                Description = "This is a test workout",
+                WorkoutDate = DateTime.UtcNow,
+                Exercises = new List<Exercise>
+            {
+                new Exercise
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Test Exercise",
+                    Sets = 3,
+                    Repetitions = 10,
+                    Weight = 50,
+                    Duration = 30
+                }
+            }
+            };
+
+            await workoutService.Seed(workout);
+        }
     }    
 }

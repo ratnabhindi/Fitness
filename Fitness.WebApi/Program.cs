@@ -15,6 +15,25 @@ namespace Fitness.WebApi
             // Add services to the container.
             builder.Services.AddSingleton<IWorkoutService, WorkoutService>();
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+                });
+
+                options.AddPolicy("AllowLocalHost", policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod();
+                    policy.WithExposedHeaders("X-Custom-Header"); // Exposing custom headers for debugging
+                });
+
+                options.AddPolicy("AllowOnlyGoogle", policy =>
+                {
+                    policy.WithOrigins("http://google.com").AllowAnyHeader().AllowAnyMethod();
+                });
+            });
+
             builder.Services.AddControllers(options =>
             {
                 options.RespectBrowserAcceptHeader = true;
@@ -36,8 +55,8 @@ namespace Fitness.WebApi
 
                     // find out which status code to use
                     var actionExecutingContext =
-                          context as Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext;
-
+                         context as Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext;
+                    
                     // if there are modelstate errors & all keys were correctly
                     // found/parsed we're dealing with validation errors
                     //
@@ -62,8 +81,6 @@ namespace Fitness.WebApi
                         };
                     }
 
-                    // if one of the keys wasn't correctly found / couldn't be parsed
-                    // we're dealing with null/unparsable input
                     problemDetails.Status = StatusCodes.Status400BadRequest;
                     problemDetails.Title = "One or more errors on input occurred.";
                     return new BadRequestObjectResult(problemDetails)
@@ -71,12 +88,12 @@ namespace Fitness.WebApi
                         ContentTypes = { "application/problem+json" }
                     };
                 };
-            }); ;
+            });
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(typeof(AutoMapperConfig));
-
+               
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -87,6 +104,9 @@ namespace Fitness.WebApi
             }
 
             app.UseHttpsRedirection();
+            app.UseRouting();
+
+            app.UseCors(); 
 
             app.UseAuthorization();
 

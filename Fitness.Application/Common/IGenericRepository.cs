@@ -21,10 +21,13 @@ namespace Fitness.Application.Common
             Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null,
                 bool disableTracking = true);
 
-        void Add(T entity);
+        Task Add(T entity);
         Task<T> AddAsync(T entity);
 
-        void Delete(T entity);
+        Task Uodate(T entity);
+        Task<T> UpdateAsyn(T entity);
+
+        Task Delete(T entity);
         Task<T> DeleteAsync(T entity);
 
         void DeleteRange(List<T> entities);

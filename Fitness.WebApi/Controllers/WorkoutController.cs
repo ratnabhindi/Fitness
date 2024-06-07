@@ -2,14 +2,16 @@
 using Fitness.Application.Services.Interfaces;
 using Fitness.Domain.Models;
 using Fitness.WebApi.ViewModels;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+
 
 namespace Fitness.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Produces("application/json")]
+    [EnableCors("AllowLocalHost")]
     public class WorkoutController : ControllerBase
     {
 
