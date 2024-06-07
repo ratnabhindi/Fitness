@@ -1,13 +1,19 @@
-using Fitness.Application.Services.Implementation;
-using Fitness.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using IdentityServer4.Models;
 using IdentityServer4.Test;
 using System.Collections.Generic;
+using System.Reflection;
+using System.IO;
+using Microsoft.OpenApi.Models;
+using Fitness.Application.Services.Implementation;
+using Fitness.Application.Services.Interfaces;
 using Fitness.WebApi.Configurations;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace Fitness.WebApi
 {
@@ -31,7 +37,7 @@ namespace Fitness.WebApi
                 options.AddPolicy("AllowLocalHost", policy =>
                 {
                     policy.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod();
-                    policy.WithExposedHeaders("X-Custom-Header"); // Exposing custom headers for debugging
+                    policy.WithExposedHeaders("X-Custom-Header");
                 });
 
                 options.AddPolicy("AllowOnlyGoogle", policy =>
@@ -40,11 +46,26 @@ namespace Fitness.WebApi
                 });
             });
 
+            // Configure API versioning
+            builder.Services.AddApiVersioning(options =>
+            {
+                options.ReportApiVersions = true;
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.ApiVersionReader = new UrlSegmentApiVersionReader(); // Use URL segment versioning
+            });
+
+            builder.Services.AddVersionedApiExplorer(options =>
+            {
+                options.GroupNameFormat = "'v'VVV";
+                options.SubstituteApiVersionInUrl = true;
+            });
+
             // Configure Authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    options.Authority = "https://localhost:5001"; // URL of your IdentityServer
+                    options.Authority = "https://localhost:5001";
                     options.Audience = "api1";
                     options.RequireHttpsMetadata = false;
                 });
@@ -119,7 +140,53 @@ namespace Fitness.WebApi
             });
 
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+
+            builder.Services.AddSwaggerGen(options =>
+            {
+                // To enable xml comments
+                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+
+                // Configure Swagger to support API versioning
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Fitness Planning API",
+                    Version = "v1.0",
+                    Description = "A ASP.NET Web API implementation of RESTful Fitness Planning API",
+                    TermsOfService = new Uri("https://fitnessplanning.com/terms"),
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Contact Information",
+                        Url = new Uri("https://fitnessplanning.com/contact")
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "License Information",
+                        Url = new Uri("https://fitnessplanning.com/license")
+                    }
+                });
+
+                options.SwaggerDoc("v2", new OpenApiInfo
+                {
+                    Title = "Fitness Planning API",
+                    Version = "v2.0",
+                    Description = "A ASP.NET Web API implementation of RESTful Fitness Planning API",
+                    TermsOfService = new Uri("https://fitnessplanning.com/terms"),
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Contact Information",
+                        Url = new Uri("https://fitnessplanning.com/contact")
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "License Information",
+                        Url = new Uri("https://fitnessplanning.com/license")
+                    }
+                });
+
+                options.OperationFilter<SwaggerDefaultValues>();
+            });
+
             builder.Services.AddAutoMapper(typeof(AutoMapperConfig));
 
             var app = builder.Build();
@@ -128,7 +195,11 @@ namespace Fitness.WebApi
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Fitness Planning API v1.0");
+                    c.SwaggerEndpoint("/swagger/v2/swagger.json", "Fitness Planning API v2.0");
+                });
             }
 
             app.UseHttpsRedirection();
