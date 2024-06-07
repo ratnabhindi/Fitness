@@ -1,7 +1,12 @@
 using Fitness.Application.Services.Implementation;
 using Fitness.Application.Services.Interfaces;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.IdentityModel.Tokens;
+using IdentityServer4.Models;
+using IdentityServer4.Test;
+using System.Collections.Generic;
 using Fitness.WebApi.Configurations;
 
 namespace Fitness.WebApi
@@ -15,6 +20,7 @@ namespace Fitness.WebApi
             // Add services to the container.
             builder.Services.AddSingleton<IWorkoutService, WorkoutService>();
 
+            // Configure CORS
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", policy =>
@@ -34,6 +40,41 @@ namespace Fitness.WebApi
                 });
             });
 
+            // Configure Authentication
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = "https://localhost:5001"; // URL of your IdentityServer
+                    options.Audience = "api1";
+                    options.RequireHttpsMetadata = false;
+                });
+
+            builder.Services.AddIdentityServer()
+                .AddDeveloperSigningCredential()
+                .AddInMemoryApiResources(new List<ApiResource> {
+                    new ApiResource("api1", "My API")
+                })
+                .AddInMemoryClients(new List<Client> {
+                    new Client
+                    {
+                        ClientId = "client",
+                        AllowedGrantTypes = GrantTypes.ClientCredentials,
+                        ClientSecrets =
+                        {
+                            new Secret("secret".Sha256())
+                        },
+                        AllowedScopes = { "api1" }
+                    }
+                })
+                .AddTestUsers(new List<TestUser> {
+                    new TestUser
+                    {
+                        SubjectId = "1",
+                        Username = "alice",
+                        Password = "password"
+                    }
+                });
+
             builder.Services.AddControllers(options =>
             {
                 options.RespectBrowserAcceptHeader = true;
@@ -42,31 +83,18 @@ namespace Fitness.WebApi
             {
                 setupAction.InvalidModelStateResponseFactory = context =>
                 {
-                    // create a problem details object
                     var problemDetailsFactory = context.HttpContext.RequestServices
                         .GetRequiredService<ProblemDetailsFactory>();
                     var problemDetails = problemDetailsFactory.CreateValidationProblemDetails(
                             context.HttpContext,
                             context.ModelState);
 
-                    // add additional info not added by default
                     problemDetails.Detail = "See the errors field for details.";
                     problemDetails.Instance = context.HttpContext.Request.Path;
 
-                    // find out which status code to use
                     var actionExecutingContext =
                          context as Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext;
-                    
-                    // if there are modelstate errors & all keys were correctly
-                    // found/parsed we're dealing with validation errors
-                    //
-                    // if the context couldn't be cast to an ActionExecutingContext
-                    // because it's a ControllerContext, we're dealing with an issue 
-                    // that happened after the initial input was correctly parsed.  
-                    // This happens, for example, when manually validating an object inside
-                    // of a controller action.  That means that by then all keys
-                    // WERE correctly found and parsed.  In that case, we're
-                    // thus also dealing with a validation error.
+
                     if (context.ModelState.ErrorCount > 0 &&
                         (context is ControllerContext ||
                          actionExecutingContext?.ActionArguments.Count == context.ActionDescriptor.Parameters.Count))
@@ -93,7 +121,7 @@ namespace Fitness.WebApi
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(typeof(AutoMapperConfig));
-               
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -106,8 +134,10 @@ namespace Fitness.WebApi
             app.UseHttpsRedirection();
             app.UseRouting();
 
-            app.UseCors(); 
+            app.UseCors();
 
+            app.UseIdentityServer();
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
