@@ -14,6 +14,8 @@ using Fitness.Application.Services.Implementation;
 using Fitness.Application.Services.Interfaces;
 using Fitness.WebApi.Configurations;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace Fitness.WebApi
 {
@@ -62,12 +64,25 @@ namespace Fitness.WebApi
             });
 
             // Configure Authentication
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            var key = Encoding.ASCII.GetBytes(builder.Configuration.GetValue<string>("JWTSecret"));
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
                 .AddJwtBearer(options =>
                 {
-                    options.Authority = "https://localhost:5001";
-                    options.Audience = "api1";
+                    //options.Authority = "https://localhost:5001";
+                    //options.Audience = "api1";
                     options.RequireHttpsMetadata = false;
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = new TokenValidationParameters()
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = false,
+                        ValidateAudience = false
+                    };
                 });
 
             builder.Services.AddIdentityServer()
@@ -143,6 +158,36 @@ namespace Fitness.WebApi
 
             builder.Services.AddSwaggerGen(options =>
             {
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "JWT Authorization header using the baerer scheme. Enter Bearer [space] add your token in the text input."
+
+                });
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Id = "Bearer",
+                                Type = ReferenceType.SecurityScheme
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header
+                        },
+                        new List<string>()
+                    }
+                });
+
+
                 // To enable xml comments
                 var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
